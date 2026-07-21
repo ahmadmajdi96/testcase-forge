@@ -3,6 +3,11 @@ services:
     build: .
     image: testcase-forge:latest
     restart: unless-stopped
+    # Attach to Docker's existing default bridge instead of creating a new
+    # per-project network. Avoids "all predefined address pools have been fully
+    # subnetted" on hosts with many networks — no server networking changes and
+    # no new subnet is allocated. Published ports still work on the default bridge.
+    network_mode: bridge
     ports:
       # Host 8225 -> container 8080. Override the host port with HOST_PORT.
       - '${HOST_PORT:-8225}:8080'

@@ -1,0 +1,62 @@
+services:
+  testcase-forge:
+    build: .
+    image: testcase-forge:latest
+    restart: unless-stopped
+    ports:
+      # Host 8225 -> container 8080. Override the host port with HOST_PORT.
+      - '${HOST_PORT:-8225}:8080'
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      HOST: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # --- auth: tenant-scoped API keys (required in production) ---
+      # e.g. TENANT_API_KEYS=acme:sk_acme_key,globex:sk_globex_key
+      TENANT_API_KEYS: ${TENANT_API_KEYS:-}
+      SERVICE_API_KEYS: ${SERVICE_API_KEYS:-}
+      # --- Novita ---
+      NOVITA_API_KEY: ${NOVITA_API_KEY:?set NOVITA_API_KEY in .env}
+      NOVITA_MODEL: ${NOVITA_MODEL:-deepseek/deepseek-v3.2}
+      NOVITA_TIMEOUT_MS: ${NOVITA_TIMEOUT_MS:-180000}
+      NOVITA_MAX_TOKENS: ${NOVITA_MAX_TOKENS:-8000}
+      # --- generation tuning ---
+      GENERATION_CONCURRENCY: ${GENERATION_CONCURRENCY:-8}
+      MAX_ITEMS_PER_UNIT: ${MAX_ITEMS_PER_UNIT:-10}
+      MAX_REPAIR_ROUNDS: ${MAX_REPAIR_ROUNDS:-2}
+      MAX_GLOBAL_REPAIR_ROUNDS: ${MAX_GLOBAL_REPAIR_ROUNDS:-2}
+      # --- persistence ---
+      ARTIFACTS_DIR: /data/artifacts
+      # --- test runner ---
+      # docker mode spawns one isolated Playwright container per run via the
+      # host daemon (docker.sock below). The workspace must be a HOST path the
+      # daemon can bind-mount, hence the twin RUNNER_*_WORKSPACE_DIR values.
+      RUNNER_MODE: docker
+      RUNNER_IMAGE: mcr.microsoft.com/playwright:v1.49.1-jammy
+      RUNNER_WORKSPACE_DIR: /data/run-workspaces
+      RUNNER_HOST_WORKSPACE_DIR: ${PWD}/data/run-workspaces
+      RUN_TIMEOUT_MS: ${RUN_TIMEOUT_MS:-900000}
+    volumes:
+      - artifacts:/data/artifacts
+      # Runner control plane. Mounting docker.sock grants the service container
+      # control of the host daemon — acceptable for a trusted single-host deploy;
+      # use a remote runner pool or rootless DinD for hardened environments.
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/run-workspaces:/data/run-workspaces
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+volumes:
+  artifacts:

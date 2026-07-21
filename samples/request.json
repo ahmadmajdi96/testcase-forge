@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "filename": "02_api.md",
+      "content": "# API Integration And Contract Plan\n\n## Endpoint Catalog\n\n| ID | Item | Priority |\n|---|---|---|\n| CONTRACT-001 | POST /api/public/elevenlabs/scribe-token | P0 |\n| CONTRACT-008 | POST /api/rag/upload | P1 |\n\n## Global API Rules > Authentication\n\nAll protected endpoints require a valid JWT. Unauthenticated requests return 401 with a standard error shape { error: { code, message } }.\n"
+    }
+  ],
+  "options": { "maxItemsPerUnit": 8, "concurrency": 4, "maxRepairRounds": 2 }
+}

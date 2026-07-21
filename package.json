@@ -1,0 +1,36 @@
+{
+  "name": "testcase-forge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Microservice that ingests specification documents and generates detailed, Playwright-ready test cases via Novita AI.",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --dir tests --exclude '**/live.*'",
+    "test:watch": "vitest --dir tests",
+    "test:live": "vitest run tests/live.novita.test.ts",
+    "smoke": "tsx scripts/live-smoke.ts"
+  },
+  "dependencies": {
+    "@fastify/helmet": "^12.0.1",
+    "@fastify/multipart": "^9.0.1",
+    "@fastify/rate-limit": "^10.2.1",
+    "fastify": "^5.2.1",
+    "pino": "^9.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "pino-pretty": "^13.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

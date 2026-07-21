@@ -1,9 +1,12 @@
+# Anchored to the build-context root so nested dirs like src/coverage are NOT
+# excluded (a bare "coverage" pattern also matches src/coverage).
 node_modules
-dist
 .git
 .env
 *.log
-tests
-scripts
-coverage
-artifacts
+/dist
+/tests
+/scripts
+/coverage
+/artifacts
+/data

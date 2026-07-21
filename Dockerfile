@@ -12,16 +12,21 @@ FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
 ENV ARTIFACTS_DIR=/data/artifacts
 WORKDIR /app
-# Writable artifact volume mount point, owned by the non-root user.
-RUN mkdir -p /data/artifacts && chown -R node:node /data
+# su-exec lets the entrypoint drop from root to the node user after fixing
+# ownership of bind-mounted runtime dirs.
+RUN apk add --no-cache su-exec \
+  && mkdir -p /data/artifacts /data/run-workspaces \
+  && chown -R node:node /data
 VOLUME /data/artifacts
-# Run as the built-in non-root user.
-USER node
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node package.json ./
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 8080
 # Lightweight liveness probe against the unauthenticated health route.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+# Starts as root so the entrypoint can chown bind-mounts, then drops to node.
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "dist/index.js"]

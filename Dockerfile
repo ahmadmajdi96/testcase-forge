@@ -12,9 +12,10 @@ FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
 ENV ARTIFACTS_DIR=/data/artifacts
 WORKDIR /app
-# su-exec lets the entrypoint drop from root to the node user after fixing
-# ownership of bind-mounted runtime dirs.
-RUN apk add --no-cache su-exec \
+# docker-cli: the runner talks to the mounted host docker.sock to spawn sibling
+# Playwright containers (mounting the socket alone is not enough — the client
+# binary must be present). su-exec: drop root -> node in the entrypoint.
+RUN apk add --no-cache su-exec docker-cli \
   && mkdir -p /data/artifacts /data/run-workspaces \
   && chown -R node:node /data
 VOLUME /data/artifacts

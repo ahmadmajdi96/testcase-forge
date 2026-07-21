@@ -1,10 +1,12 @@
+# Dependency / build output (anchored to repo root so nested dirs like
+# src/coverage are NOT ignored — an unanchored "coverage/" matches every level).
 node_modules/
-dist/
+/dist/
+/coverage/
+/artifacts/
+/data/
 .env
 .env.*
 !.env.example
 !.env.sample
 *.log
-artifacts/
-coverage/
-data/
